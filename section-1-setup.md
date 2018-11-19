@@ -21,7 +21,7 @@ Software and libraries listed in the table below are required to complete the wo
 
 | Software / Library | Version Required | Installation |
 | --- | --- | --- |
-| An Amazon Web Services account | | |
+| An Amazon Web Services account | | [Create an AWS account](https://portal.aws.amazon.com/billing/signup#/start) |
 | QGIS | >= 2.12.0 | [Download and install](https://www.qgis.org/en/site/forusers/download.html)
 | Node.js / NPM | Node >= 6 / NPM >= 5.2 | [Download and install](https://nodejs.org/) 
 | SSH client | | Mac/Linux have this as standard, Windows users please [download and install the PuTTY MSI](https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html)

@@ -18,7 +18,7 @@ From the top-level `foss4g-client` directory, copy the following files from
 `node_modules` to `src/external`:
 
 | Source | Destination |
-|:-- |:-- |
+| --- | --- |
 | `node_modules/ol-mapbox-style/stylefunction.js` | `src/external/stylefunction.js` |
 | `node_modules/ol-mapbox-style/util.js` | `src/external/util.js` |
 | `node_modules/@mapbox/mapbox-gl-style-spec/deref.js` | `src/external/mapbox-gl-style-spec/deref.js`  (note the subfolder)|
@@ -26,7 +26,7 @@ From the top-level `foss4g-client` directory, copy the following files from
 Copy the following directories with contents from `node_modules` to `src/external/mapbox-gl-style-spec/`
 
 | Source | Destination |
-|:-- |:-- |
+| --- | --- |
 | `node_modules/@mapbox/mapbox-gl-style-spec/feature_filter` | `src/external/mapbox-gl-style-spec/feature_filter` |
 | `node_modules/@mapbox/mapbox-gl-style-spec/function` | `src/external/mapbox-gl-style-spec/function ` |
 | `node_modules/@mapbox/mapbox-gl-style-spec/util` | `src/external/mapbox-gl-style-spec/util` |

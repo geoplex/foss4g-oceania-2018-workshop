@@ -13,7 +13,7 @@ To start with we'll explore how you can use Maputnik to generate JSON files in [
 **2.** From the top menu select ***Sources*** and then add a new source with the following parameters in the bottom section of the dialog:
 
 | Parameter | Value |
-|:-- |:-- |
+| --- | --- |
 | Source ID | `workshop_abs_stats_poly` |
 | Source Type | `Vector (XYZ URLs)` |
 | 1st Tile URL | `http://<LOAD_BALANCER_DNS_NAME>/geoserver/gwc/service/wmts?REQUEST=GetTile&SERVICE=WMTS&VERSION=1.0.0&LAYER=workshop:abs_stats_poly&STYLE=&TILEMATRIX=EPSG:900913:{z}&TILEMATRIXSET=EPSG:900913&FORMAT=application/x-protobuf;type=mapbox-vector&TILECOL={x}&TILEROW={y}` |
@@ -25,7 +25,7 @@ To start with we'll explore how you can use Maputnik to generate JSON files in [
 **3.** Close the Sources dialog, then in the left-hand pane, click on ***Add Layer*** and add the polygon ABS stats layer by populating the dialog with the following parameters.
 
 | Parameter | Value |
-|:-- |:-- |
+| --- | --- |
 | ID | `workshop_abs_stats_poly` |
 | Type | `Fill` |
 | Source | `workshop_abs_stats_poly` |
@@ -50,7 +50,7 @@ To start with we'll explore how you can use Maputnik to generate JSON files in [
 **8.** Set the filter, min and max zoom of the layers as per the following table.
 
 | Layer ID | Min Zoom | Max Zoom | 
-|:-- |:-- | :-- |
+| --- | --- |  --- |
 | `workshop_abs_stats_poly_SA1` | 13 | 24 |
 | `workshop_abs_stats_poly_SA2` | 9 | 13 |
 | `workshop_abs_stats_poly_SA3` | 6 | 9 |
@@ -174,7 +174,7 @@ These style files provide different colour ramps that can be used for both the `
 **2.** Fill in the properties as per the table below and then click on the ***Choose File*** button, select the `styles/poly_blue.json` from the workshop files directory, and click ***Upload...***
 
 | Parameter | Value | 
-|:-- |:-- |
+| --- | --- |
 | Name | poly_blue |
 | Workspace | workshop |
 | Format | MBStyle |
@@ -192,7 +192,7 @@ These style files provide different colour ramps that can be used for both the `
 **7.** In the ***Filter chain*** page fill in the following properties in the ***Chain settings*** section and then click ***Close***.
 
 | Parameter | Value | 
-|:-- |:-- |
+| --- | --- |
 | Name | `rest-styles` |
 | Comma delimited list of ANT patterns (with optional query string) | `/rest/workspaces/**/styles/**` |
 | Disable security for this chain | selected |

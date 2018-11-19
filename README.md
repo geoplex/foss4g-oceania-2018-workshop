@@ -14,7 +14,7 @@ allows you to interactively explore a set of ABS statistics across Victoria.
 ![Workshop Architecture Overview](images/client_end_state.png)
 
 | Section | Expected time to complete |
-|:-- |:-- |:-- |
+| --- | --- |
 | [1. Prequisites and setup](section-1-setup.md) | 10 min |
 | [2. Deploy AWS resources](section-2-aws.md) | 30 min |
 | [3. Import data into PostGIS](section-3-data.md) | 30 min |
@@ -26,7 +26,7 @@ allows you to interactively explore a set of ABS statistics across Victoria.
 | [7.2. Redux and UI](section-7-2-ui.md) | 20 min |
 | [7.3. Finish app](section-7-3-finish-app.md) | 30 min |
 | [7.4. Publish app](section-7-4-publish-app.md) | 5 min |
-| [8. Cleanup](section-8-clean.md) | -- |
+| [8. Cleanup](section-8-clean.md) | |
 
 
 ## Feedback

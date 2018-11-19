@@ -20,7 +20,7 @@ VPCs/subnets, launch EC2/RDS instances, et cetera.
 Software and libraries listed in the table below are required to complete the workshop.
 
 | Software / Library | Version Required | Installation |
-|:-- |:-- |:-- |
+| --- | --- | --- |
 | An Amazon Web Services account | | |
 | QGIS | >= 2.12.0 | [Download and install](https://www.qgis.org/en/site/forusers/download.html)
 | Node.js / NPM | Node >= 6 / NPM >= 5.2 | [Download and install](https://nodejs.org/) 

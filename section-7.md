@@ -8,7 +8,7 @@ different ABS statistics across Victoria. We'll build it using the following
 key technologies.
 
 | Technology / Library | Description | 
-|:-- |:-- |
+| --- | --- |
 | [ReactJS](https://reactjs.org/) | Provides the JavaScript framework for building a single page application |
 | [Redux](https://Redux.js.org/) and [ImmutableJS](http://facebook.github.io/immutable-js/) | Provides the framework for managing application state |
 | [Material UI]() | Provides a set of React UI components based on Google's Material Design |

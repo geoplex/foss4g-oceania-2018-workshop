@@ -27,7 +27,7 @@ The GeoServer AMI has several plugins already installed, including the [Vector T
 **8.** Create the store using the values in the table below. Note: to get the database host value, open the AWS console and locate the RDS instance you deployed earlier in the ***RDS > Instances*** and copy the ***Endpoint***.
 
 | Parameter | Value |
-|:-- |:-- |
+| --- | --- |
 | Workspace | `workshop` |
 | Data Source Name | `workshop-postgis` |
 | Description | `FOSS4G Oceania Workshop PostGIS instance` |

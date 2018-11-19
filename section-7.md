@@ -1,3 +1,7 @@
+# 0 to 100 on AWS – Building a full stack web mapping application with PostGIS, GeoServer, OpenLayers and ReactJS
+
+#### FOSS4G SotM Oceania - Afternoon Workshop #1 - 20th November 2018
+
 ## 7. Create a ReactJS and OpenLayers Web Mapping Application
 
 We now have all of the server-side components of our stack deployed and we're

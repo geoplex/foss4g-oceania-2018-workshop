@@ -1,0 +1,61 @@
+{
+  "variables": {
+    "aws_access_key": "",
+    "aws_secret_key": "",
+    "associate_public_ip_address": "true",
+    "ssh_keypair_name": "foss4g-workshop",
+    "ssh_private_key_file": "YOUR_KEY_FILE",
+    "vpc_id": "YOUR_VPC_ID",
+    "subnet_id": "YOUR_SUBNET_ID",
+    "base_ami": "ami-09b42976632b27e9b",
+    "aws_region": "ap-southeast-2",
+    "aws_instance_type": "t2.medium",
+    "name": "foss4g-workshop-geoserver",
+    "description": "Geoserver for FOSS4G Workshop",
+    "ssh_username": "ec2-user"
+  },
+  "builders": [
+    {
+      "type": "amazon-ebs",
+      "access_key": "{{user `aws_access_key`}}",
+      "secret_key": "{{user `aws_secret_key`}}",
+      "token": "{{user `aws_session_token`}}",
+      "name": "{{user `name`}}",
+      "region": "{{user `aws_region`}}",
+      "instance_type": "{{user `aws_instance_type`}}",
+      "ssh_username": "{{user `ssh_username`}}",
+      "ssh_timeout": "10m",
+      "source_ami": "{{user `base_ami`}}",
+      "ami_name": "{{user `name`}} {{isotime \"20060102T150405Z\"}}",
+      "ami_description": "{{user `description`}}",
+      "tags":
+      {
+        "Name": "{{user `name`}} {{isotime \"20060102T150405Z\"}}"
+      },
+      "run_tags": {
+        "Name": "Packer Builder - {{user `name`}}"
+      },
+      "run_volume_tags": {
+        "Name": "Packer Builder - {{user `name`}}"
+      },
+      "associate_public_ip_address": "{{user `associate_public_ip_address`}}",
+      "ssh_keypair_name": "{{user `ssh_keypair_name`}}",
+      "ssh_private_key_file": "{{user `ssh_private_key_file`}}",
+      "vpc_id": "{{user `vpc_id`}}",
+      "subnet_id": "{{user `subnet_id`}}"
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "ansible",
+      "playbook_file": "../ansible/geoserver.yml"
+    }
+  ],
+  "post-processors": [
+    {
+      "type": "manifest",
+      "output": "manifest.json",
+      "strip_path": true
+    }
+  ]
+}

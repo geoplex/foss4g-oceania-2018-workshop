@@ -1,0 +1,4 @@
+---
+oracle_java_rpm_url: "http://download.oracle.com/otn-pub/java/jdk/8u181-b13/96a7b8442fe848ef90c96a2fad6ed6d1/jdk-8u181-linux-x64.rpm"
+oracle_java_rpm_checksum: "sha256:48af6afd56252f5e6641fd0ad9009c056ee5d178129b4824cef4b976a655d375"
+oracle_java_home: /usr/java/latest

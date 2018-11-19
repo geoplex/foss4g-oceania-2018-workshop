@@ -1,0 +1,25 @@
+---
+- name: Install and Configure Geoserver and Dependencies
+  hosts: all
+  gather_facts: yes
+  become: true
+
+  vars:
+    geoserver_data_dir: /efs/geoserver/data
+    geoserver_logs_dir: /var/log/geoserver
+
+  roles:
+    - role: roles/oracle-java
+
+    - role: roles/tomcat
+      tomcat_catalina_opts: "-Xms512M -Xmx2048M -server -XX:+UseParallelGC -XX:SoftRefLRUPolicyMSPerMB=36000 \
+        -DGEOSERVER_DATA_DIR={{ geoserver_data_dir }} \
+        -DGEOSERVER_NODE_OPTS=id:$host_ip \
+        -DGEOSERVER_LOG_LOCATION={{ geoserver_logs_dir }}/geoserver.log \
+        -Xbootclasspath/a:/opt/tomcat/lib/marlin-0.9.1-Unsafe.jar \
+        -Xbootclasspath/p:/opt/tomcat/lib/marlin-0.9.1-Unsafe-sun-java2d.jar \
+        -Dsun.java2d.renderer=org.marlin.pisces.PiscesRenderingEngine"
+      tomcat_java_opts: "-Djava.awt.headless=true"
+
+    - role: roles/geoserver
+      create_data_dir: false

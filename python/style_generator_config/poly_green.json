@@ -1,0 +1,80 @@
+{
+  "styleName": "poly_green",
+  "outFilePath": "../styles/poly_green.json",
+  "styleType": "fill",
+  "projection": "EPSG:900913",
+  "layerNames": [
+    {
+      "workspace": "workshop",
+      "name": "abs_stats_poly"
+    }
+  ],
+  "areaTypes": {
+    "field": "area_type",
+    "values": [
+      {
+        "value": "SA1",
+        "zoomRange": [
+          24,
+          13
+        ]
+      },
+      {
+        "value": "SA2",
+        "zoomRange": [
+          13,
+          9
+        ]
+      },
+      {
+        "value": "SA3",
+        "zoomRange": [
+          9,
+          6
+        ]
+      },
+      {
+        "value": "SA4",
+        "zoomRange": [
+          6,
+          0
+        ]
+      }
+    ]
+  },
+  "breaks": {
+    "field": "<REPLACE_FIELD>_cl",
+    "values": [
+      {
+        "value": 1,
+        "color": "rgba(240, 249, 232, 1)",
+        "outlineColor": "rgba(0, 0, 0, 1)",
+        "opacity": 0.8
+      },
+      {
+        "value": 2,
+        "color": "rgba(186, 228, 188, 1)",
+        "outlineColor": "rgba(0, 0, 0, 1)",
+        "opacity": 0.8
+      },
+      {
+        "value": 3,
+        "color": "rgba(123, 204, 196, 1)",
+        "outlineColor": "rgba(0, 0, 0, 1)",
+        "opacity": 0.8
+      },
+      {
+        "value": 4,
+        "color": "rgba(67, 162, 202, 1)",
+        "outlineColor": "rgba(0, 0, 0, 1)",
+        "opacity": 0.8
+      },
+      {
+        "value": 5,
+        "color": "rgba(8, 104, 172, 1)",
+        "outlineColor": "rgba(0, 0, 0, 1)",
+        "opacity": 0.8
+      }
+    ]
+  }
+}

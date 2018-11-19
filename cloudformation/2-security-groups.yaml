@@ -1,0 +1,168 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Security Groups for FOSS4G Oceania workshop'
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+    - Label:
+        default: Security Configuration
+      Parameters:
+      - AllowedIPs
+      - SSHPort
+      - DBPort
+      - GeoserverPort
+    ParameterLabels:
+      AllowedIPs:
+        default: Allowed IPs
+      SSHPort:
+        default: SSH port
+      DBPort:
+        default: Postgres port
+      GeoserverPort:
+        default: GeoServer port
+
+Parameters:
+  AllowedIPs:
+    Description: 'Allowed IP addresses (CIDR notation)'
+    AllowedPattern: '^\d+\.\d+\.\d+\.\d+/\d+$'
+    Type: String
+  SSHPort:
+    Description: 'TCP port for SSH access'
+    Type: Number
+    Default: '22'
+  DBPort:
+    Description: 'TCP port for database access'
+    Type: Number
+    Default: '5432'
+  GeoserverPort:
+    Description: 'TCP port for GeoServer web access'
+    Type: Number
+    Default: '8080'
+
+Outputs:
+  SSHSecurityGroupID:
+    Description: SSH Security Group ID
+    Value:
+      Ref: SSHSecurityGroup
+    Export:
+      Name: 'foss4g-oceania-workshop-ssh-security-group-id'
+  GeoserverSecurityGroupID:
+    Description: GeoServer Security Group ID
+    Value:
+      Ref: GeoserverSecurityGroup
+    Export:
+      Name: 'foss4g-oceania-workshop-geoserver-security-group-id'
+  GeoserverLBSecurityGroupID:
+    Description: GeoServer Load Balancer Security Group ID
+    Value:
+      Ref: GeoserverLBSecurityGroup
+    Export:
+      Name: 'foss4g-oceania-workshop-geoserver-lb-security-group-id'
+  GeoserverNFSSecurityGroupID:
+    Description: GeoServer NFS Security Group ID
+    Value:
+      Ref: GeoserverNFSSecurityGroup
+    Export:
+      Name: 'foss4g-oceania-workshop-geoserver-nfs-security-group-id'
+  DBAccessSecurityGroupID:
+    Description: DB Access Security Group ID
+    Value:
+      Ref: DBAccessSecurityGroup
+    Export:
+      Name: 'foss4g-oceania-workshop-db-access-security-group-id'
+  DBSecurityGroupID:
+    Description: DB Security Group ID
+    Value:
+      Ref: DBSecurityGroup
+    Export:
+      Name: 'foss4g-oceania-workshop-db-security-group-id'
+
+Resources:
+  GeoserverLBSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: GeoServer Load Balancer
+      VpcId: !ImportValue 'foss4g-oceania-workshop-vpc'
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: '80'
+        ToPort: '80'
+        CidrIp: !Ref AllowedIPs
+        Description: 'Allowed IPs'
+      Tags:
+      - Key: Name
+        Value: 'foss4g-oceania-geoserver-lb'
+
+  GeoserverSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: GeoServer
+      VpcId: !ImportValue 'foss4g-oceania-workshop-vpc'
+      SecurityGroupIngress:
+      - SourceSecurityGroupId: !Ref GeoserverLBSecurityGroup
+        IpProtocol: tcp
+        FromPort: !Ref GeoserverPort
+        ToPort: !Ref GeoserverPort
+        Description: 'Geoserver load balancer'
+      Tags:
+      - Key: Name
+        Value: 'foss4g-oceania-geoserver'
+
+  SSHSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: SSH
+      VpcId: !ImportValue 'foss4g-oceania-workshop-vpc'
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: !Ref SSHPort
+        ToPort: !Ref SSHPort
+        CidrIp: !Ref AllowedIPs
+        Description: 'Allowed IPs'
+      Tags:
+      - Key: Name
+        Value: 'foss4g-oceania-ssh'
+
+  GeoserverNFSSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: GeoServer NFS
+      VpcId: !ImportValue 'foss4g-oceania-workshop-vpc'
+      SecurityGroupIngress:
+      - SourceSecurityGroupId: !Ref GeoserverSecurityGroup
+        IpProtocol: tcp
+        FromPort: '2049'
+        ToPort: '2049'
+        Description: 'Allow NFS from GeoServer SG'
+      Tags:
+      - Key: Name
+        Value: 'foss4g-oceania-geoserver-nfs'
+
+  DBAccessSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Access to the database security group
+      VpcId: !ImportValue 'foss4g-oceania-workshop-vpc'
+      Tags:
+      - Key: Name
+        Value: 'foss4g-oceania-db-access'
+
+  DBSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Database
+      VpcId: !ImportValue 'foss4g-oceania-workshop-vpc'
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: !Ref DBPort
+        ToPort: !Ref DBPort
+        SourceSecurityGroupId: !Ref DBAccessSecurityGroup
+        Description: 'Security Group db-access'
+      - IpProtocol: tcp
+        FromPort: !Ref DBPort
+        ToPort: !Ref DBPort
+        CidrIp: !Ref AllowedIPs
+        Description: 'Allowed IPs'
+      Tags:
+      - Key: Name
+        Value: 'foss4g-oceania-db'

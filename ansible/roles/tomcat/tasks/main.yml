@@ -1,0 +1,256 @@
+---
+
+- name: Insure Required Packages Are Installed
+  package:
+    name: "{{ item }}"
+    state: installed
+  with_items:
+    - tar
+    - wget
+
+# Create tomcat group and user
+- name: Create Tomcat Group
+  group:
+    name: "{{ tomcat_user_group }}"
+    state: present
+
+- name: Create Tomcat user
+  user:
+    name: "{{ tomcat_user_name }}"
+    home: "{{ tomcat_user_home }}"
+    group: "{{ tomcat_user_group }}"
+    system: "{{ tomcat_user_system }}"
+    createhome: true
+    comment: "Tomcat Service User"
+
+- name: Create Tomcat Self Signed SSL Kestore
+  command: su - tomcat -c "$JAVA_HOME/bin/keytool -genkey -noprompt -alias tomcat -dname \"CN=tomcat,OU=tomcat,O=tomcat,L=AUS,S=AUS,C=AU\" -storepass changeit -keypass changeit -keyalg RSA -keystore /home/tomcat/.keystore"
+
+# Creating tomcat temp locations
+- name: Create Temporary Storage Location
+  file:
+    state: directory
+    path: "{{ tomcat_tmp_storage }}"
+
+- name: Download Tomcat
+  ignore_errors: True
+  with_items: "{{ tomcat_mirrors }}"
+  get_url:
+    dest: "{{ tomcat_tmp_storage }}"
+    url: "{{ item }}/tomcat-{{ tomcat_version_major }}/v{{ tomcat_version }}/bin/{{ tomcat_tar_archive }}"
+    checksum: "{{ tomcat_version_specific[tomcat_version].checksum }}"
+
+- name: Unarchive Tomcat
+  unarchive:
+    remote_src: yes
+    src: "{{ tomcat_tmp_storage }}/{{ tomcat_tar_archive }}"
+    dest: "{{ tomcat_base_dir }}"
+    owner: "{{ tomcat_user_name }}"
+    group: "{{ tomcat_user_group }}"
+    keep_newer: yes
+    # extra_opts: ['--strip-components=1', '--show-stored-names']
+
+- name: Give Ownership Of Unarchived Folder
+  file:
+    state: directory
+    path: "{{tomcat_base_dir }}/apache-tomcat-{{ tomcat_version }}"
+    owner: "{{ tomcat_user_name }}"
+    group: "{{ tomcat_user_group }}"
+
+- name: Create Symlink To Archive Location
+  file:
+    path: "{{ tomcat_instance_path }}"
+    src: "{{ tomcat_base_dir }}/apache-tomcat-{{ tomcat_version }}"
+    owner: "{{ tomcat_user_name }}"
+    group: "{{ tomcat_user_group }}"
+    state: link
+
+- name: Install standard server.xml
+  when:
+    - not tomcat_use_custom_server_xml
+    - tomcat_configure_configs
+  template:
+    src: server.xml.j2
+    dest: "{{ tomcat_instance_path }}/conf/server.xml"
+    owner: "{{ tomcat_user_name }}"
+    group: "{{ tomcat_user_group }}"
+    mode: 0640
+
+- name: Install custom server.xml
+  when:
+    - tomcat_use_custom_server_xml
+    - tomcat_configure_configs
+  template:
+    src: "{{ tomcat_custom_server_xml }}"
+    dest: "{{ tomcat_instance_path }}/conf/server.xml"
+    owner: "{{ tomcat_user_name }}"
+    group: "{{ tomcat_user_group }}"
+    mode: 0640
+
+- name: Install standard web.xml
+  when:
+    - not tomcat_use_custom_web_xml
+    - tomcat_configure_configs
+  template:
+    src: web.xml.j2
+    dest: "{{ tomcat_instance_path }}/conf/web.xml"
+    owner: "{{ tomcat_user_name }}"
+    group: "{{ tomcat_user_group }}"
+    mode: 0640
+
+- name: Install custom web.xml
+  when:
+    - tomcat_use_custom_web_xml
+    - tomcat_configure_configs
+  template:
+    src: "{{ tomcat_custom_web_xml }}"
+    dest: "{{ tomcat_instance_path }}/conf/web.xml"
+    owner: "{{ tomcat_user_name }}"
+    group: "{{ tomcat_user_group }}"
+    mode: 0640
+
+- name: Install standard context.xml
+  when:
+    - not tomcat_use_custom_context_xml
+    - tomcat_configure_configs
+  template:
+    src: context.xml.j2
+    dest: "{{ tomcat_instance_path }}/conf/context.xml"
+    owner: "{{ tomcat_user_name }}"
+    group: "{{ tomcat_user_group }}"
+    mode: 0640
+
+- name: Install custom context.xml
+  when:
+    - tomcat_use_custom_context_xml
+    - tomcat_configure_configs
+  template:
+    src: "{{ tomcat_custom_context_xml }}"
+    dest: "{{ tomcat_instance_path }}/conf/context.xml"
+    owner: "{{ tomcat_user_name }}"
+    group: "{{ tomcat_user_group }}"
+    mode: 0640
+
+- name: Install standard tomcat-users.xml
+  when:
+    - not tomcat_use_custom_tomcat_users_xml
+    - tomcat_configure_configs
+  template:
+    src: tomcat-users.xml.j2
+    dest: "{{ tomcat_instance_path }}/conf/tomcat-users.xml"
+    owner: "{{ tomcat_user_name }}"
+    group: "{{ tomcat_user_group }}"
+    mode: 0640
+
+- name: Install custom tomcat-users.xml
+  when: tomcat_use_custom_tomcat_users_xml
+  template:
+    src: "{{ tomcat_custom_tomcat_users_xml }}"
+    dest: "{{ tomcat_instance_path }}/conf/tomcat-users.xml"
+    owner: "{{ tomcat_user_name }}"
+    group: "{{ tomcat_user_group }}"
+    mode: 0640
+
+- name: Install Extra Libraries
+  with_items: "{{ tomcat_extra_libs_path }}"
+  when:
+    - tomcat_configure_libs
+  copy:
+    src: "{{ item }}"
+    dest: "{{ tomcat_instance_path }}/lib/"
+    owner: "{{ tomcat_user_name }}"
+    group: "{{ tomcat_user_group }}"
+    mode: 0640
+
+- name: Remove ROOT Webapp Context
+  file:
+    state: absent
+    path: "{{ tomcat_instance_path }}/webapps/ROOT/"
+  when:
+    - not tomcat_root_context
+
+- name: Remove manager Webapp Context
+  file:
+    state: absent
+    path: "{{ tomcat_instance_path }}/webapps/manager/"
+  when:
+    - not tomcat_manager_context
+
+- name: Remove host-manager Webapp Context
+  file:
+    state: absent
+    path: "{{ tomcat_instance_path }}/webapps/host-manager/"
+  when:
+    - not tomcat_hostmanager_context
+
+- name: Remove docs Webapp Context
+  file:
+    state: absent
+    path: "{{ tomcat_instance_path }}/webapps/docs/"
+  when:
+    - not tomcat_docs_context
+
+- name: Remove examples Webapp Context
+  file:
+    state: absent
+    path: "{{ tomcat_instance_path }}/webapps/examples/"
+  when:
+    - not tomcat_examples_context
+
+- name: Install WebApps
+  with_items: "{{ tomcat_webapps_path }}"
+  when:
+    - tomcat_configure_webapps
+  copy:
+    src: "{{ item }}"
+    dest: "{{ tomcat_instance_path }}/webapps/"
+    owner: "{{ tomcat_user_name }}"
+    group: "{{ tomcat_user_group }}"
+    mode: 0755
+
+- name: Install Service (systemd)
+  when: ansible_service_mgr == "systemd"
+  template:
+    src: tomcat.service.j2
+    dest: /etc/systemd/system/tomcat.service
+    mode: '0644'
+
+- name: Install Service (sysv)
+  when: ansible_service_mgr != "systemd"
+  template:
+    src: tomcat.sysv.j2
+    dest: /etc/init.d/tomcat
+    mode: '0755'
+
+- name: Use setcap to allow Java to bind to ports below 1024
+  capabilities:
+    path: /usr/java/latest/jre/bin/java
+    capability: CAP_NET_BIND_SERVICE=+eip
+    state: present
+  when: tomcat_port_connector <= 1024 or tomcat_port_redirect <= 1024
+
+- name: Add linker config for Java (required with setcap)
+  template:
+    src: java-ld.conf.j2
+    dest: /etc/ld.so.conf.d/java.conf
+    mode: 0644
+  when: tomcat_port_connector <= 1024 or tomcat_port_redirect <= 1024
+
+- name: Configure dynamic linker after Java config update
+  command: ldconfig
+  when: tomcat_port_connector <= 1024 or tomcat_port_redirect <= 1024
+
+- name: Start service (systemd)
+  when: ansible_service_mgr == "systemd"
+  service:
+    name: tomcat
+    state: started
+    enabled: yes
+
+- name: Start service (sysv)
+  when: ansible_service_mgr != "systemd"
+  service:
+    name: tomcat
+    state: started
+    enabled: yes
+    use: service

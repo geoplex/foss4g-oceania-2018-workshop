@@ -1,0 +1,151 @@
+---
+- name: Install dependencies
+  yum:
+    name: "{{ item }}"
+    state: latest
+  with_items:
+    - zip
+    - unzip
+
+- name: Stop Geoserver / Tomcat
+  service:
+    name: "{{ geoserver_service_name }}"
+    state: stopped
+
+- name: Download Geoserver Zip file
+  get_url:
+    url: "{{ geoserver_war_url }}"
+    dest: /tmp/{{ geoserver_setup_filename }}
+    mode: 0750
+
+- name: Extract Geoserver zip file
+  unarchive:
+    src: "/tmp/{{ geoserver_setup_filename }}"
+    remote_src: yes
+    dest: /tmp
+
+- name: Create Geoserver webapp directory
+  file:
+    path: "{{ geoserver_webapp_dir }}"
+    state: directory
+    owner: "{{ tomcat_user }}"
+    group: "{{ tomcat_group }}"
+
+- name: Extract geoserver.war file
+  unarchive:
+    src: /tmp/geoserver.war
+    remote_src: yes
+    dest: "{{ geoserver_webapp_dir }}"
+    owner: "{{ tomcat_user }}"
+    group: "{{ tomcat_group }}"
+
+- name: Download extensions
+  get_url:
+    url: "{{ extensions_baseurl }}{{ item }}"
+    dest: "/tmp/{{ item }}"
+    mode: 0750
+  with_items: "{{ geoserver_extensions }}"
+
+- name: Extract extensions
+  unarchive:
+    src: "/tmp/{{ item }}"
+    remote_src: yes
+    dest: "{{ geoserver_webapp_dir }}/WEB-INF/lib/"
+    owner: "{{ tomcat_user }}"
+    group: "{{ tomcat_group }}"
+  with_items: "{{ geoserver_extensions }}"
+
+- name: Download community extensions
+  get_url:
+    url: "{{ community_extensions_baseurl }}{{ item }}"
+    dest: "/tmp/{{ item }}"
+    mode: 0750
+  with_items: "{{ community_extensions }}"
+
+- name: Extract community extensions
+  unarchive:
+    src: "/tmp/{{ item }}"
+    remote_src: yes
+    dest: "{{ geoserver_webapp_dir }}/WEB-INF/lib/"
+    owner: "{{ tomcat_user }}"
+    group: "{{ tomcat_group }}"
+  with_items: "{{ community_extensions }}"
+
+- name: Download JAI
+  get_url:
+    url: "{{ jai_url }}"
+    dest: /tmp/jai-1_1_3-lib-linux-amd64.tar.gz
+    mode: 0750
+
+- name: Extract JAI .jar files
+  unarchive:
+    src: /tmp/jai-1_1_3-lib-linux-amd64.tar.gz
+    remote_src: yes
+    dest: /usr/java/latest/jre/lib/ext
+    extra_opts: ["--wildcards", "*.jar", "--strip-components", "2"]
+
+- name: Extract JAI .so files
+  unarchive:
+    src: /tmp/jai-1_1_3-lib-linux-amd64.tar.gz
+    remote_src: yes
+    dest: /usr/java/latest/jre/lib/amd64
+    extra_opts: ["--wildcards", "*.so", "--strip-components", "2"]
+
+- name: Download JAI ImageIO
+  get_url:
+    url: "{{ jai_imageio_url }}"
+    dest: /tmp/jai_imageio-1_1-lib-linux-amd64.tar.gz
+    mode: 0750
+
+- name: Extract JAI ImageIO .jar files
+  unarchive:
+    src: /tmp/jai_imageio-1_1-lib-linux-amd64.tar.gz
+    remote_src: yes
+    dest: /usr/java/latest/jre/lib/ext
+    extra_opts: ["--wildcards", "*.jar", "--strip-components", "2"]
+
+- name: Extract JAI ImageIO .so files
+  unarchive:
+    src: /tmp/jai_imageio-1_1-lib-linux-amd64.tar.gz
+    remote_src: yes
+    dest: /usr/java/latest/jre/lib/amd64
+    extra_opts: ["--wildcards", "*.so", "--strip-components", "2"]
+
+- name: Remove non-native (Java) JAI files
+  file:
+    path: "{{ geoserver_webapp_dir }}/WEB-INF/lib/{{ item }}"
+    state: absent
+  with_items:
+    - jai_codec-1.1.3.jar
+    - jai_core-1.1.3.jar
+    - jai_imageio-1.1.jar
+
+- name: Download Marlin renderer
+  get_url:
+    url: "{{ item }}"
+    dest: /opt/tomcat/lib/
+    mode: 0750
+    owner: "{{ tomcat_user }}"
+    group: "{{ tomcat_group }}"
+  with_items:
+    - "{{ marlin_renderer_url }}"
+    - "{{ marlin_sun_java2d_url }}"
+
+- name: Create Geoserver data directory
+  file:
+    dest: "{{ geoserver_data_dir }}"
+    state: directory
+    owner: "{{ tomcat_user }}"
+    group: "{{ tomcat_group }}"
+    mode: 0750
+    recurse: yes
+  when: create_data_dir
+
+- name: Create Geoserver logs directory
+  file:
+    dest: "{{ geoserver_logs_dir }}"
+    state: directory
+    owner: "{{ tomcat_user }}"
+    group: "{{ tomcat_group }}"
+    mode: 0750
+    recurse: yes

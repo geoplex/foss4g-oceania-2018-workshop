@@ -1,0 +1,14 @@
+.idea
+*.retry
+
+# Vim swap files
+.*.sw?
+
+# Python bytecode
+*.py[co]
+
+# MacOS desktop services
+.DS_Store
+
+data
+manifest.json

@@ -1,0 +1,85 @@
+{
+  "styleName": "point_purple",
+  "outFilePath": "../styles/point_purple.json",
+  "styleType": "circle",
+  "projection": "EPSG:900913",
+  "layerNames": [
+    {
+      "workspace": "workshop",
+      "name": "abs_stats_point"
+    }
+  ],
+  "areaTypes": {
+    "field": "area_type",
+    "values": [
+      {
+        "value": "SA1",
+        "zoomRange": [
+          24,
+          13
+        ]
+      },
+      {
+        "value": "SA2",
+        "zoomRange": [
+          13,
+          9
+        ]
+      },
+      {
+        "value": "SA3",
+        "zoomRange": [
+          9,
+          6
+        ]
+      },
+      {
+        "value": "SA4",
+        "zoomRange": [
+          6,
+          0
+        ]
+      }
+    ]
+  },
+  "breaks": {
+    "field": "<REPLACE_FIELD>_cl",
+    "values": [
+      {
+        "value": 1,
+        "color": "rgba(237, 248, 251, 1)",
+        "outlineColor": "rgba(0, 0, 0, 1)",
+        "opacity": 0.8,
+        "size": 3
+      },
+      {
+        "value": 2,
+        "color": "rgba(179, 205, 227, 1)",
+        "outlineColor": "rgba(0, 0, 0, 1)",
+        "opacity": 0.8,
+        "size": 5
+      },
+      {
+        "value": 3,
+        "color": "rgba(140, 150, 198, 1)",
+        "outlineColor": "rgba(0, 0, 0, 1)",
+        "opacity": 0.8,
+        "size": 8
+      },
+      {
+        "value": 4,
+        "color": "rgba(136, 86, 167, 1)",
+        "outlineColor": "rgba(0, 0, 0, 1)",
+        "opacity": 0.8,
+        "size": 13
+      },
+      {
+        "value": 5,
+        "color": "rgba(129, 15, 124, 1)",
+        "outlineColor": "rgba(0, 0, 0, 1)",
+        "opacity": 0.8,
+        "size": 21
+      }
+    ]
+  }
+}

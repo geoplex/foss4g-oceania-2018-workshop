@@ -1,0 +1,218 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Geoserver auto-scaling group for FOSS4G Oceania workshop'
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+    - Label:
+        default: EC2 instance configuration
+      Parameters:
+      - AMI
+      - InstanceName
+      - InstanceType
+      - KeyPair
+      - InitialInstances
+      - MinInstances
+      - MaxInstances
+    ParameterLabels:
+      AMI:
+        default: AMI
+      InstanceName:
+        default: Instance name
+      InstanceType:
+        default: Instance type
+      KeyPair:
+        default: SSH key pair
+      InitialInstances:
+        default: Initial number of instances
+      MinInstances:
+        default: Minimum number of instances
+      MaxInstances:
+        default: Maximum number of instances
+
+Parameters:
+  AMI:
+    Description: AMI for GeoServer instances
+    Type: String
+    Default: ami-00b784efcd7b2731c # foss4g-workshop-geoserver 20180919T023714Z
+  InstanceName:
+    Description: EC2 instance name
+    Type: String
+    Default: foss4g-oceania-workshop-geoserver
+  InstanceType:
+    AllowedValues:
+    - t2.small
+    - t2.medium
+    - m5.large
+    - m5.2xlarge
+    Default: t2.medium
+    Description: Instance type for GeoServer instances
+    Type: String
+  KeyPair:
+    Description: SSH key pair for access to instances
+    Type: AWS::EC2::KeyPair::KeyName
+  InitialInstances:
+    Default: '1'
+    Description: Initial number of GeoServer instances
+    Type: Number
+  MinInstances:
+    Default: '1'
+    Description: Minimum number of GeoServer instances
+    Type: Number
+  MaxInstances:
+    Default: '6'
+    Description: Maximum number of GeoServer instances
+    Type: Number
+
+Resources:
+  GeoserverElasticFileSystem:
+    Type: AWS::EFS::FileSystem
+    DeletionPolicy: Delete
+    Properties:
+      FileSystemTags:
+      - Key: Name
+        Value: 'geoserver-efs'
+
+  GeoserverEFSMountAZ1:
+    Type: AWS::EFS::MountTarget
+    Properties:
+      FileSystemId: !Ref GeoserverElasticFileSystem
+      SubnetId: !ImportValue 'foss4g-oceania-workshop-subnet-a-public'
+      SecurityGroups:
+      - !ImportValue 'foss4g-oceania-workshop-geoserver-nfs-security-group-id'
+
+  GeoserverEFSMountAZ2:
+    Type: AWS::EFS::MountTarget
+    Properties:
+      FileSystemId: !Ref GeoserverElasticFileSystem
+      SubnetId: !ImportValue 'foss4g-oceania-workshop-subnet-b-public'
+      SecurityGroups:
+      - !ImportValue 'foss4g-oceania-workshop-geoserver-nfs-security-group-id'
+
+  GeoserverLB:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Subnets:
+      - !ImportValue 'foss4g-oceania-workshop-subnet-a-public'
+      - !ImportValue 'foss4g-oceania-workshop-subnet-b-public'
+      SecurityGroups:
+      - !ImportValue 'foss4g-oceania-workshop-geoserver-lb-security-group-id'
+      Tags:
+      - Key: Name
+        Value: 'foss4g-oceania-workshop-geoserver'
+
+  GeoserverTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: geoserver
+      Protocol: HTTP
+      Port: 8080
+      VpcId: !ImportValue 'foss4g-oceania-workshop-vpc'
+      HealthCheckPath: /geoserver/index.html
+      TargetGroupAttributes:
+      - Key: stickiness.enabled
+        Value: true
+
+  GeoserverListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref GeoserverLB
+      Protocol: HTTP
+      Port: 80
+      DefaultActions:
+      - TargetGroupArn: !Ref GeoserverTargetGroup
+        Type: forward
+
+  GeoserverLaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    DependsOn:
+    - GeoserverEFSMountAZ1
+    - GeoserverEFSMountAZ2
+    Metadata:
+      AWS::CloudFormation::Init:
+        configSets:
+          default:
+          - setup_geoserver
+        setup_geoserver:
+          commands:
+            010_make_mount_point:
+              command: "mkdir -p /efs"
+            020_add_nfs_mount:
+              command: !Sub 'echo "${GeoserverElasticFileSystem}.efs.${AWS::Region}.amazonaws.com:/ /efs nfs4 nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2 0 0" >>/etc/fstab'
+            030_mount_all:
+              command: "mount -a"
+            040_make_shared_home_dir:
+              command: "mkdir -p /efs/geoserver/data"
+            050_change_ownership_shared_home_dir:
+              command: "chown -R tomcat:tomcat /efs/geoserver/data/"
+            060_restart_geoserver:
+              command: "service tomcat restart"
+          services:
+            sysvinit:
+              rpcbind:
+                enabled: true
+                ensureRunning: true
+          packages:
+            yum:
+              nfs-utils: []
+    Properties:
+      LaunchTemplateName: foss4g-oceania-workshop-geoserver
+      LaunchTemplateData:
+        ImageId: !Ref AMI
+        InstanceType: !Ref InstanceType
+        KeyName: !Ref KeyPair
+        SecurityGroupIds:
+        - !ImportValue 'foss4g-oceania-workshop-geoserver-security-group-id'
+        - !ImportValue 'foss4g-oceania-workshop-db-access-security-group-id'
+        TagSpecifications:
+        - ResourceType: instance
+          Tags:
+          - Key: Name
+            Value: !Ref InstanceName
+        UserData:
+          Fn::Base64: !Sub |
+            #!/bin/bash -x
+
+            # Process the default configset from the CloudFormation::Init metadata
+            /opt/aws/bin/cfn-init -v \
+            --region ${AWS::Region} \
+            --stack ${AWS::StackName} \
+            --resource GeoserverLaunchTemplate \
+            --configsets default
+
+            # Signal GeoserverScalingGroup with the cfn-init exit status
+            /opt/aws/bin/cfn-signal -e $? \
+            --region ${AWS::Region} \
+            --stack ${AWS::StackName} \
+            --resource GeoserverScalingGroup
+
+  GeoserverScalingGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      DesiredCapacity: !Ref InitialInstances
+      LaunchTemplate:
+        LaunchTemplateId: !Ref GeoserverLaunchTemplate
+        Version: !GetAtt GeoserverLaunchTemplate.LatestVersionNumber
+      TargetGroupARNs:
+      - !Ref GeoserverTargetGroup
+      VPCZoneIdentifier:
+      - !ImportValue 'foss4g-oceania-workshop-subnet-a-public'
+      - !ImportValue 'foss4g-oceania-workshop-subnet-b-public'
+      MaxSize: !Ref MaxInstances
+      MinSize: !Ref MinInstances
+      Tags:
+      - Key: Name
+        PropagateAtLaunch: true
+        Value: !Ref InstanceName
+    UpdatePolicy:
+      AutoScalingRollingUpdate:
+        MaxBatchSize: 1
+        PauseTime: PT10M
+        MinInstancesInService: 1
+        WaitOnResourceSignals: true
+        SuspendProcesses: [ReplaceUnhealthy, AZRebalance, AlarmNotification, ScheduledActions]
+    CreationPolicy:
+      ResourceSignal:
+        Count: !Ref InitialInstances
+        Timeout: PT10M

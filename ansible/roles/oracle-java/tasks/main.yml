@@ -1,0 +1,21 @@
+---
+- name: Download Oracle Java RPM
+  become: yes
+  get_url:
+    url: "{{ oracle_java_rpm_url }}"
+    headers: 'Cookie:gpw_e24=http%3A%2F%2Fwww.oracle.com%2F; oraclelicense=accept-securebackup-cookie'
+    checksum: "{{ oracle_java_rpm_checksum }}"
+    dest: /tmp/java-linux-x64.rpm
+    validate_certs: yes
+    timeout: 10
+
+- name: Install Oracle Java RPM
+  become: yes
+  yum:
+    name: /tmp/java-linux-x64.rpm
+    state: present
+
+- name: Set Java Home Environmental Variables
+  template:
+    src: java_home.sh.j2
+    dest: /etc/profile.d/java_home.sh

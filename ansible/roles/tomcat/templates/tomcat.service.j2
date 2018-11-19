@@ -1,0 +1,33 @@
+[Unit]
+Description=Tomcat Server
+After=network.target
+
+[Service]
+Type=forking
+
+Restart=on-failure
+Environment='TOMCAT_JAVA_HOME={{ java_home }}'
+
+Environment='CATALINA_HOME={{ tomcat_catalina_home }}'
+Environment='CATALINA_BASE={{ tomcat_catalina_home }}'
+
+{% if tomcat_catalina_opts not in (None, "") %}
+Environment='CATALINA_OPTS={{ tomcat_catalina_opts }}'
+{% else %}
+Environment='CATALINA_OPTS=-Xms512M -Xmx2048M -server -XX:+UseParallelGC'
+{% endif %}
+
+{% if tomcat_java_opts not in (None, "") %}
+Environment='JAVA_OPTS={{ tomcat_java_opts }}'
+{% else %}
+Environment='JAVA_OPTS=-Djava.awt.headless=true'
+{% endif %}
+
+ExecStart={{ tomcat_instance_path }}/bin/startup.sh
+ExecStop={{ tomcat_instance_path }}/bin/shutdown.sh
+
+User={{ tomcat_user_name }}
+Group={{ tomcat_user_group }}
+
+[Install]
+WantedBy=multi-user.target

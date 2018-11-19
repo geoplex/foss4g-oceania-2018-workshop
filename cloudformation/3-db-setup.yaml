@@ -1,0 +1,98 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Postgres database setup for FOSS4G Oceania workshop'
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+    - Label:
+        default: RDS instance configuration
+      Parameters:
+      - InstanceName
+      - InstanceClass
+      - AllocatedStorage
+      - MasterUsername
+      - MasterPassword
+    ParameterLabels:
+      InstanceName:
+        default: RDS instance name
+      InstanceClass:
+        default: RDS instance type
+      AllocatedStorage:
+        default: RDS allocated storage
+      MasterUsername:
+        default: RDS master username
+      MasterPassword:
+        default: RDS master password
+
+Parameters:
+  InstanceName:
+    Description: 'RDS instance name'
+    Type: String
+    Default: foss4g
+  AllocatedStorage:
+    Description: 'RDS instance allocated storage (GB)'
+    Type: Number
+    Default: 20
+  InstanceClass:
+    Description: 'RDS instance type'
+    AllowedValues:
+      - db.t2.micro
+      - db.t2.small
+      - db.t2.medium
+      - db.t2.large
+      - db.m4.large
+      - db.m4.xlarge
+    Type: String
+    Default: db.t2.micro
+  MasterUsername:
+    Description: 'RDS master user name'
+    Type: String
+    Default: postgres
+  MasterPassword:
+    Description: 'RDS master user password'
+    Type: String
+    NoEcho: true
+
+Outputs:
+  Foss4GOceaniaWorkshopDBSubnetGroup:
+    Description: 'DB Subnet Group'
+    Value: !Ref Foss4GOceaniaWorkshopDBSubnetGroup
+    Export:
+      Name: !Sub 'foss4g-oceania-workshop-db-subnet-group'
+  Foss4GOceaniaWorkshopDB:
+    Description: 'Postgres RDS instance'
+    Value: !Ref Foss4GOceaniaWorkshopDB
+    Export:
+      Name: !Sub 'foss4g-oceania-workshop-db'
+  Foss4GOceaniaWorkshopDBEndpoint:
+    Description: 'Postgres RDS instance endpoint'
+    Value: !GetAtt Foss4GOceaniaWorkshopDB.Endpoint.Address
+    Export:
+      Name: !Sub 'foss4g-oceania-workshop-db-endpoint'
+
+Resources:
+  Foss4GOceaniaWorkshopDBSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: Subnets used by the PostGIS DB
+      SubnetIds:
+      - !ImportValue 'foss4g-oceania-workshop-subnet-a-public'
+      - !ImportValue 'foss4g-oceania-workshop-subnet-b-public'
+  Foss4GOceaniaWorkshopDB:
+    Type: "AWS::RDS::DBInstance"
+    Properties:
+      DBName: !Ref InstanceName
+      AllocatedStorage: !Ref AllocatedStorage
+      DBInstanceClass: !Ref InstanceClass
+      DBSubnetGroupName: !Ref Foss4GOceaniaWorkshopDBSubnetGroup
+      Engine: 'postgres'
+      EngineVersion: "9.6.6"
+      MasterUsername: !Ref MasterUsername
+      MasterUserPassword: !Ref MasterPassword
+      PubliclyAccessible: true
+      VPCSecurityGroups:
+      - !ImportValue 'foss4g-oceania-workshop-db-security-group-id'
+      Tags:
+        - Key: Name
+          Value: "foss4g-oceania-workshop-db"
+    DeletionPolicy: "Snapshot"

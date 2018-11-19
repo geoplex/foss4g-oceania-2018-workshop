@@ -1,0 +1,82 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Admin instance for FOSS4G Oceania workshop'
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+    - Label:
+        default: EC2 instance configuration
+      Parameters:
+      - InstanceAMI
+      - InstanceName
+      - InstanceType
+      - KeyPair
+    ParameterLabels:
+      InstanceAMI:
+        default: AMI
+      InstanceName:
+        default: Instance name
+      InstanceType:
+        default: Instance type
+      KeyPair:
+        default: SSH key pair
+
+Parameters:
+  InstanceAMI:
+    Description: 'EC2 instance image'
+    Type: String
+    Default: ami-09b42976632b27e9b # Amazon Linux AMI 2018.03.0 (HVM), SSD Volume Type
+  InstanceName:
+    Description: 'EC2 instance name'
+    Type: String
+    Default: foss4g-oceania-workshop-admin
+  InstanceType:
+    Description: 'EC2 instance type'
+    AllowedValues:
+    - t2.nano
+    - t2.micro
+    - t2.small
+    - t2.medium
+    - m5.large
+    Type: String
+    Default: t2.nano
+  KeyPair:
+    Description: 'SSH key pair for access to instance'
+    Type: AWS::EC2::KeyPair::KeyName
+
+Resources:
+  AdminInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !Ref InstanceAMI
+      InstanceType: !Ref InstanceType
+      KeyName: !Ref KeyPair
+      NetworkInterfaces:
+      - AssociatePublicIpAddress: true
+        DeleteOnTermination: true
+        DeviceIndex: 0
+        GroupSet:
+        - !ImportValue 'foss4g-oceania-workshop-ssh-security-group-id'
+        - !ImportValue 'foss4g-oceania-workshop-db-access-security-group-id'
+        SubnetId: !ImportValue 'foss4g-oceania-workshop-subnet-a-public'
+      UserData:
+        Fn::Base64: !Sub
+          - |
+            #!/bin/bash
+            # Update all packages.
+            yum -y update
+            yum -y install postgresql96 python27-psycopg2
+
+            # Put the RDS endpoint into a shell variable for convenience.
+            echo "export DBHOST=${DBEndpoint}" >> /home/ec2-user/.bashrc
+
+            # Download and extract workshop resources into ec2-user's home directory.
+            curl -Lo /tmp/workshop-data.tar.gz https://s3-ap-southeast-2.amazonaws.com/foss4g-oceania-2018-workshop-resources/workshop-data.tar.gz
+            mkdir -p /home/ec2-user/workshop
+            tar -zxf /tmp/workshop-data.tar.gz -C /home/ec2-user/workshop
+            rm /tmp/workshop-data.tar.gz
+
+          - DBEndpoint: !ImportValue foss4g-oceania-workshop-db-endpoint
+      Tags:
+      - Key: Name
+        Value: !Ref InstanceName

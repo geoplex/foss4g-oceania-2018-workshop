@@ -1,0 +1,30 @@
+---
+geoserver_major_version: 2
+geoserver_minor_version: 13
+geoserver_bugfix_version: 2
+geoserver_version: "{{geoserver_major_version}}.{{geoserver_minor_version}}.{{geoserver_bugfix_version}}"
+geoserver_service_name: tomcat
+tomcat_user: tomcat
+tomcat_group: tomcat
+geoserver_webapp_dir: /opt/tomcat/webapps/geoserver
+geoserver_data_dir: /opt/geoserver/data
+create_data_dir: true
+geoserver_logs_dir: /var/log/geoserver
+
+geoserver_war_url: "https://downloads.sourceforge.net/project/geoserver/GeoServer/{{ geoserver_version }}/geoserver-{{ geoserver_version }}-war.zip"
+extensions_baseurl: "https://downloads.sourceforge.net/project/geoserver/GeoServer/{{ geoserver_version }}/extensions/"
+community_extensions_baseurl: "http://ares.opengeo.org/geoserver/master/community-latest/"
+jai_url: "http://download.java.net/media/jai/builds/release/1_1_3/jai-1_1_3-lib-linux-amd64.tar.gz"
+jai_imageio_url: "http://download.java.net/media/jai-imageio/builds/release/1.1/jai_imageio-1_1-lib-linux-amd64.tar.gz"
+marlin_renderer_url: "https://github.com/bourgesl/marlin-renderer/releases/download/v0_9_1/marlin-0.9.1-Unsafe.jar"
+marlin_sun_java2d_url: "https://github.com/bourgesl/marlin-renderer/releases/download/v0_9_1/marlin-0.9.1-Unsafe-sun-java2d.jar"
+
+geoserver_setup_filename: "geoserver-{{ geoserver_version }}-war.zip"
+geoserver_extensions:
+    - "geoserver-{{ geoserver_version }}-wps-plugin.zip"
+    - "geoserver-{{ geoserver_version }}-css-plugin.zip"
+    - "geoserver-{{ geoserver_version }}-ysld-plugin.zip"
+    - "geoserver-{{ geoserver_version }}-vectortiles-plugin.zip"
+
+community_extensions:
+    - "geoserver-{{ geoserver_major_version }}.{{ geoserver_minor_version }}-SNAPSHOT-mbstyle-plugin.zip"

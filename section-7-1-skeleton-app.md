@@ -51,7 +51,7 @@ npm add @material-ui/core@1.5.0 immutable@3.8.2 isomorphic-fetch@2.2.1 ol@4.6.5 
 For example, to set these files up in Bash:
 
 ```
-echo="REACT_APP_BASE_GEOSERVER_URL=http://<GeoServer Load Balancer DNS Name>/geoserver" >> .env.local
+echo "REACT_APP_BASE_GEOSERVER_URL=http://<GeoServer Load Balancer DNS Name>/geoserver" >> .env.local
 cp .env.local .env.production
 ```
 

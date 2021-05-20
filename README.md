@@ -2,6 +2,10 @@
 
 #### FOSS4G SotM Oceania - Afternoon Workshop #1 - 20th November 2018
 
+> Please note that this repository is **archived** and **read only**.
+> It is available as a reference, but is no longer actively maintained.
+
+
 ## Introduction
 
 This 3.5 hour workshop is intended to provide an overview and hands-on
